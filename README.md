@@ -1,1 +1,1 @@
-# Pedestrin_prediction
+# Modeling and Understanding Pedestrian Behavior
