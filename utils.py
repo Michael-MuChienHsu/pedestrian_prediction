@@ -56,6 +56,22 @@ def make_videos(frames, output_path, fps=60):
         out.write(f)
     out.release()
 
+def make_video_from_dir(dir_path, output_path, fps=60):
+    """Write a video given list of frames.
+
+    Args:
+        dir_path: path to directory
+        output_path: path to write the video
+        fps: fps to write the video
+    """
+    frames = sorted(os.listdir(dir_path))
+    # print(frames)
+    frames = [ cv2.imread(os.path.join(dir_path, f_path)) for f_path in frames if ".png" in f_path ]
+    out = cv2.VideoWriter(output_path,cv2.VideoWriter_fourcc(*'DIVX'), fps, frames[0].shape[:2][::-1])
+    for f in frames:
+        out.write(f)
+    out.release()
+
 def get_param( view_num, video_num, tracker_id ):
     """Get intrinsic matrix, homography, tracklet's starting frame, video's starting frame, tracklet's trajectories.
     
@@ -250,7 +266,7 @@ def to_skew(pts):
                        -y, x, zeros ] )
     return skew.reshape(-1, 3, 3)
 
-def triangulate(p1, p2, pts1, pts2):
+def triangulate(P_list, pts_list):
     """Triangulation to get 3D coordinates.
 
     Args:
@@ -262,16 +278,15 @@ def triangulate(p1, p2, pts1, pts2):
     Returns:
         _3d_points: Nx4 points in 3D    
     """
-    pts1, pts2 = to_homo(pts1), to_homo(pts2)
+    if len(P_list) != len(pts_list):
+        raise ValueError("Expect same number of views and corresponding keypoints.")
 
-    pts1_skew = to_skew(pts1)
-    pts2_skew = to_skew(pts2)
-    cons1 = pts1_skew@p1
-    cons2 = pts2_skew@p2
-    
+    skew_list = [ to_skew(to_homo(pts)) for pts in pts_list ]
+    cons_list = [ pts_skew@P for pts_skew, P in zip(skew_list, P_list) ]
+
     _3d_points = np.empty( (0, 3) )
-    for c1, c2 in zip(cons1, cons2):
-        A = np.vstack( [c1[:2], c2[:2]] )
+    for _cons in zip(*(cons_list)):
+        A = np.vstack( [ single_view_cons[:2] for single_view_cons in _cons] )
         _, _, VT = np.linalg.svd(A)
         p3d = VT[-1]
         p3d = (p3d/p3d[-1])[:3]
