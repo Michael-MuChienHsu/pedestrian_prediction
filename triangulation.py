@@ -1,5 +1,5 @@
 import pickle
-from utils import get_param, read_frame, triangulate, make_video_from_dir
+from utils import get_param, read_frame, triangulate, make_video_from_dir, to_homo
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
@@ -99,9 +99,9 @@ def visualize_3D_joint_traj(view_nums, sess_num, tracker_id, sample_rate=20, max
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
 
-    ax.set_xlim([-100, 100])
-    ax.set_ylim([-150, -20])
-    ax.set_zlim([0, 70])
+    # ax.set_xlim([-100, 100])
+    # ax.set_ylim([-150, -20])
+    # ax.set_zlim([0, 70])
 
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
@@ -150,7 +150,7 @@ def visualize_3D_joint_traj(view_nums, sess_num, tracker_id, sample_rate=20, max
             ax.plot([_s[0], _e[0]], [_s[1], _e[1]], [_s[2], _e[2] ], color = color )
 
         plt.savefig(f"./joint_3d_visualize/track_frame_{str(i).zfill(3)}.png")
-    plt.savefig("./joints_3d.png")
+    plt.savefig(f"./joints_3d_{tracker_id}.png")
 
     # Mean joint average loss
     # show_2d_joint(view_num_1, sess_num, traj_start_frames1+start_frame1, kp1.astype(int))
@@ -165,7 +165,7 @@ def visualize_3D_joint_traj(view_nums, sess_num, tracker_id, sample_rate=20, max
     # for (true_x1, true_y1), (true_x2, true_y2), (_x1, _y1), (_x2, _y2) in zip( kp1, kp2, reprojected1, reprojected2 ):
     #     print(f"kp1 {true_x1, true_y1}, repro kp1 {_x1, _y1}, kp2 {true_x2, true_y2}, repro kp2 {_x2, _y2}")
 
-def get_3D_point(view_nums, sess_num, tracker_id, sample_rate=1, smoothing = True, max_sliding_window_length = 5):
+def estimate_3D_points(view_nums, sess_num, tracker_id, sample_rate=1, smoothing = True, max_sliding_window_length = 5):
     """Apply triangualtion on joints detected on N views to get 3D coordinate.
     Note that the Z-axis is upside down, we flipped the z-axis and force "stand on the ground constraint".
 
@@ -198,7 +198,8 @@ def get_3D_point(view_nums, sess_num, tracker_id, sample_rate=1, smoothing = Tru
     if view_nums == [1, 2]:
         estimated_3d[:, :, -1] *= -1
 
-    estimated_3d = smooth_3d_joints(estimated_3d, max_sliding_window_length)
+    if smoothing:
+        estimated_3d = smooth_3d_joints(estimated_3d, max_sliding_window_length)
 
     # DEBUG Test output skeleton to ensure the shape is correct.
     # fig = plt.figure()
@@ -231,10 +232,10 @@ def smooth_3d_joints( estimated_3d, max_sliding_window_length):
         smoothed_3d_joints: 3d joints after smoothing. Nx17x3
     """
     smoothed_3d_joints = np.empty( (0, 17, 3) )
+    prev_gravity = 0
 
     for i, joints_3d in enumerate(estimated_3d):
         current_gravity = np.mean( joints_3d, axis=0 )
-
         sliding_window_length = min( i - max(0, i-max_sliding_window_length), min(i+max_sliding_window_length, len(estimated_3d) ) - i  )
         sliding_window_start = i - sliding_window_length
         sliding_window_end = i + sliding_window_length +1
@@ -247,6 +248,11 @@ def smooth_3d_joints( estimated_3d, max_sliding_window_length):
         smoothed_3d_joints = np.vstack([smoothed_3d_joints, joints_3d[None, :, :]])
 
     return smoothed_3d_joints
+
+def get_2d_joints(kp_dict, sess, view, tracklet_id):
+    traj = kp_dict[sess][view][tracklet_id]
+    joints_2d = np.array( [ _traj["keypoints"][:, :2] for _traj in traj ] )
+    return joints_2d
 
 def save_3d_joints_estimation():
     """Save reconstructed 3D joints to pickle."""
@@ -263,20 +269,73 @@ def get_MPJPE(pts_3d, pts_2d, P):
     Returns:
         error: MPJPE
     """
-    pass
+
+    pts_2d = pts_2d.reshape(-1, 2)
+    pts_3d = pts_3d.reshape(-1, 3)
+    pts_3d = np.hstack([pts_3d, np.ones((pts_3d.shape[0], 1))]) 
+    
+    # Since the extrinic for triangulation using view 1 and 2 is upside-down, z = -z
+    pts_3d = pts_3d*(np.array( [1, 1, -1, 1] ).reshape(1, 4))
+
+    reprojected_2d_joint = pts_3d@(P.T)
+    reprojected_2d_joint = (reprojected_2d_joint/reprojected_2d_joint[:, -1, None])[:, :2]
+
+    diff = pts_2d - reprojected_2d_joint
+    norm_diff = np.linalg.norm(diff, axis=1)
+    # joint_norm_diff = norm_diff.reshape(-1, 17)
+
+    return np.mean(norm_diff)
+
+def get_2_view_mpjpe(data, view1, view2, P1, P2, sess, tracker_id):
+    joints_3d = estimate_3D_points(view_nums=[view1, view2], sess_num=sess, tracker_id=tracker_id, smoothing=True)
+    joints_2d_view1= get_2d_joints( data, sess, view1, tracker_id )
+    joints_2d_view2 = get_2d_joints( data, sess, view2, tracker_id )
+    mpjpe1 = get_MPJPE(joints_3d, joints_2d_view1, P1)
+    mpjpe2 = get_MPJPE(joints_3d, joints_2d_view2, P2)
+    # print( f"label {track_id} view 1: {mpjpe1*2.54} cm. view 2: {mpjpe2*2.54} cm." )
+    return mpjpe1, mpjpe2
+
 
 if __name__ == "__main__":
     f = open('0.pickle', 'rb')
     data = pickle.load(f)
-    # visualize_3D_joint_traj( [1, 2], sess_num=0, tracker_id=0, sample_rate=30, max_frame=10)
-    # visualize_3D_joint_traj( [1, 3], sess_num=0, tracker_id=0, sample_rate=30, max_frame=300)
-    joints_3d = get_3D_point(view_nums=[1, 2], sess_num=0, tracker_id=0)
-    # make_video_from_dir("./joint_3d_visualize/", "./joint_3d_visualize/3d_video.avi", fps=3)
-
-    # Test MPJPE
     K, k, H, traj_start_frames, start_frame, trajectory, extrinsic = get_param(view_num = 1,
                                                                                video_num = 0,
                                                                             tracker_id = 0)
+    P1 = K@extrinsic
 
-    P = K@extrinsic
-    get_MPJPE(joints_3d, 0, P)
+    K, k, H, traj_start_frames, start_frame, trajectory, extrinsic = get_param(view_num = 2,
+                                                                               video_num = 0,
+                                                                            tracker_id = 0)
+    P2 = K@extrinsic
+
+    K, k, H, traj_start_frames, start_frame, trajectory, extrinsic = get_param(view_num = 3,
+                                                                               video_num = 0,
+                                                                            tracker_id = 0)
+    P3 = K@extrinsic
+    P = [-1, P1, P2, P3]
+    views = [1, 2, 3]
+    for i in range(18):
+        visualize_3D_joint_traj(views, sess_num=0, tracker_id=i, sample_rate=30, max_frame=10, smoothing=True)
+        mpjpe1, mpjpe2 =  get_2_view_mpjpe(data, views[0], views[1], P[views[0]], P[views[1]], 0, tracker_id = i)
+        _, mpjpe3 =  get_2_view_mpjpe(data, views[0], views[2], P[views[0]], P[views[2]], 0, tracker_id = i)
+        print( f"label {i} view 1: {mpjpe1*2.54} cm. view 2: {mpjpe2*2.54} cm. view 3: {mpjpe3*2.54} cm." )
+    
+    # joints_3d = estimate_3D_points(view_nums=[2, 3], sess_num=0, tracker_id=1, smoothing=True)
+    # exit()
+    # visualize_3D_joint_traj( [1, 3], sess_num=0, tracker_id=0, sample_rate=30, max_frame=300)
+    # joints_3d = estimate_3D_points(view_nums=[1, 2], sess_num=0, tracker_id=0, smoothing=False)
+
+
+    # make_video_from_dir("./joint_3d_visualize/", "./joint_3d_visualize/3d_video.avi", fps=3)
+
+    # Test MPJPE
+
+
+    # mpjpe_list = []
+    # for i in range( len(data[0][1])):
+    #     mpjpe1, mpjpe2 =  get_2_view_mpjpe(data, 1, 2, P1, P2, 0, tracker_id = i)
+    #     mpjpe_list.append( (mpjpe1+mpjpe2)/2 )
+    #     print( f"label {i} view 1: {mpjpe1*2.54} cm. view 2: {mpjpe2*2.54} cm." )
+
+    # print( np.mean( np.array(mpjpe_list) )*2.54 )
