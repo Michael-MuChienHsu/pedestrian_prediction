@@ -38,3 +38,8 @@ triangulation.py
 1. [**Towards Rich, Portable, and Large-Scale Pedestrian Data Collection**](https://arxiv.org/abs/2203.01974) Wang, A., Biswas, A., Admoni, H., & Steinfeld, A. (2022) [Project website](https://tbd.ri.cmu.edu/resources/tbd-social-navigation-datasets/)
 2. [**ByteTrack: Multi-Object Tracking by Associating Every Detection Box**](https://arxiv.org/abs/2110.06864) , Yifu Z. et al. ECCV 2022. [Github](https://github.com/ifzhang/ByteTrack)
  
+---------------------------------------
+## TODO:
+use_high_conf_filter in `./triangulation_utils.py/visualize_3D_joint_traj` <br />
+smooth z-only in `./triangulation_utils.py/visualize_3D_joint_traj` <br />
+Modulize Visualize 2d joints in `./triangulation_utils.py/visualize_3D_joint_traj` <br />
