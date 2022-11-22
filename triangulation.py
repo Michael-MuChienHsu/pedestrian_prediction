@@ -45,8 +45,6 @@ if __name__ == "__main__":
         if config.tracker_id == -1:
             raise ValueError("Visualization does not support -1 tracker_id (all tracklet).")
         visualize_3D_joint_traj( config )
-    else:
-        print("false")
 
     # Display MPJPE
     if config.MPJPE:

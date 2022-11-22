@@ -3,9 +3,7 @@ from utils import get_param, read_frame, triangulate, make_video_from_dir, to_ho
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
-import argparse
-import yaml
-from yaml.loader import SafeLoader
+import os
 
 _RGB_BODY = ( 1, 165/255,0 ) # orange
 _RGB_HEAD = (1, 0, 0) # red
@@ -265,7 +263,7 @@ def estimate_3D_points(data, config, tracker_id):
     return estimated_3d
 
 def smooth_3d_joints( estimated_3d, max_sliding_window_length, use_high_conf_filter, high_conf_mask):
-    """Smooth estimated 3d joints using sliding window on their gravity to adjust skeleton's center.
+    """Smooth estimated 3d joints using sliding window with constant velocity assumption.
 
     Args:
         estimated_3d: estimated 3d joints through triangulation. Shape: Nx17x3
@@ -396,17 +394,29 @@ def display_single_tracker_MPJPE(mpjpe_list, use_views, _id):
     print(print_str)
 
 # TODO
-def save_3d_joints_estimation(estimated_3d, output_path):
-    """Save reconstructed 3D joints to pickle.
-    
+def save_3d_joints_estimation(estimated_3d_joints, gt_trajectort, output_dir, sess, tracker_id):
+    """Save reconstructed 3D joints to a dictionary.
+    save_dict = { 
+        "3d_joints": np.ndarray with shape Nx17x3
+        "3d_trajectoy": Ground truth trajectory on z=0 plane with shape Nx3
+     }
+
     Args:
-        estimated_3d: 3d joint estimated using triangulation.
-        output_path: Path to write pickle file
+        estimated_3d_joints: 3d joint estimated using triangulation.
+        gt_trajectort: grond truth trajectory provided from dataset.
+        sess: video num of where the 3d joint is estimated from.
+        tracker_id: tracklet's label. 
 
     Returns:    
         None
     """
-    pass
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+    output_path = os.path.joint(output_dir, f"joint_3d_s{sess}_id{tracker_id}.npz")
+    save_dict = dict()
+    save_dict["3d_joints"] = estimated_3d_joints
+    save_dict["3d_trajectoy"] = gt_trajectort
+    np.save( output_path, save_dict )    
 
 def setup_multicamera(config):
     """Setup multiview camera parameters."""

@@ -8,8 +8,8 @@ use_high_conf_filter: False
 high_conf_threshold: 0.5
 use_views: [1, 2]
 # Save triangulated points arguements
-save_3d_joints: False
-output_skeleton_path: "TODO.pickle"
+save_3d_joints: True
+output_skeleton_path: "./estimated_3d_joints/"
 # Visualization arguements
 visualize: 
   visualize: False
