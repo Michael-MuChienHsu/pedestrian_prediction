@@ -1,0 +1,16 @@
+pickle_path: ./3d_extracted_joints/0.pickle
+sess: 0
+tracker_id: 0
+output_skeleton_path: "TODO.pickle"
+smoothing:
+  smoothing: True
+  sliding_window_length: 5
+use_high_conf_filter: False
+high_conf_threshold: 0.5
+use_views: [1, 2]
+visualize: 
+  visualize: True
+  sample_rate: 20
+  max_frame: 10
+  overlay_frames: True
+MPJPE: True
