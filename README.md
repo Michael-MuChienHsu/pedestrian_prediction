@@ -8,46 +8,28 @@
 5. [References](#ref).<br />
 
 ##  <a name="data_setup"></a>Data setup
+There are 8 videos in the [TBD dataset](https://arxiv.org/abs/2203.01974).
+
 ***Folders***: <br />
-***3d_extracted_joints***: joints  <br />
-***video_data_n1***, ***video_data_n2***, ***video_data_n3***: Files C_.mat: intrinsic matrix, H_.mat: homography.  <br />
-***label***: tracklets.  <br />
+***3d_extracted_joints***: joints extracted from Byte track.<br />
+***video_data_n1***, ***video_data_n2***, ***video_data_n3***: Files C_.mat: intrinsic matrix, H_.mat: homography. for each video.<br />
+***label***: Tracklets trajectories.  <br />
 ***extrinsics***: Extrinsic matrix. Video (session) 0 1 2 3 share same extrinsic and 4 5 6 7 share same extrinsics.  <br />
 
 We only provide 0.pickle for 3d joints in this repo, others can be downloaded at [google drive link](https://drive.google.com/drive/folders/1tIlMNJRF0iSb5K90ICHJPa-NwZdKWWQc?usp=share_link)
 ```
 3d_extracted_joints
     └——————0.pickle
-    └——————1.pickle
     └——————...
-    └——————7.pickle
-video_data_n1
+video_data_n1/video_data_n2/video_data_n3
     └——————C_0.mat
     └——————H_0.mat
     └——————...
-    └——————C_7.mat
-    └——————H_7.txt
-    └——————start_frames.txt
-video_data_n2
-    └——————C_0.mat
-    └——————H_0.mat
-    └——————...
-    └——————C_7.mat
-    └——————H_7.txt
-    └——————start_frames.txt
-video_data_n3
-    └——————C_0.mat
-    └——————H_0.mat
-    └——————...
-    └——————C_7.mat
-    └——————H_7.txt
     └——————start_frames.txt
 labels
     └——————0_frame.txt
     └——————0.mat
     └——————...
-    └——————7_frame.txt
-    └——————7.txt
 extrinsics
     └——————extrinsics_sess_0_1_2_3.mat
     └——————extrinsics_sess_4_5_6_7.mat    
