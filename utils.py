@@ -113,9 +113,9 @@ def get_param( view_num, video_num, tracker_id ):
         trajectory = trajectory[tracker_id]
 
     if video_num in {0, 1, 2, 3}:
-        extrinsic = load_mat_dict("./extrinsics_sess_0_1_2_3.mat")
+        extrinsic = load_mat_dict("./extrinsics/extrinsics_sess_0_1_2_3.mat")
     else:
-        extrinsic = load_mat_dict("./extrinsics_sess_4_5_6_7.mat")
+        extrinsic = load_mat_dict("./extrinsics/extrinsics_sess_4_5_6_7.mat")
 
     # view 1, 2, 3 -> left, right, center
     # Use a dummy input at index 0 since view_num is 1-indexed
