@@ -1,6 +1,6 @@
 # General arguments
 sess: 0
-tracker_id: -1
+tracker_id: 0
 smoothing:
   smoothing: True
   sliding_window_length: 5
@@ -8,13 +8,14 @@ use_high_conf_filter: False
 high_conf_threshold: 0.5
 use_views: [1, 2]
 # Save triangulated points arguements
-save_3d_joints: True
+save_3d_joints: False
 output_skeleton_path: "./estimated_3d_joints/"
 # Visualization arguements
 visualize: 
-  visualize: False
+  visualize: True
   sample_rate: 20
   max_frame: 10
   overlay_frames: True
+  visualize_path: "./joint_3d_visualize/"
 # Calculate MPJPE arguemnts
 MPJPE: True

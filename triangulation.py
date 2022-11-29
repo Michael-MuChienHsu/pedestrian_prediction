@@ -2,6 +2,7 @@ import pickle
 from utils import make_video_from_dir
 import numpy as np
 import argparse
+import os
 import yaml
 from yaml.loader import SafeLoader
 from triangulation_utils import *
@@ -25,6 +26,11 @@ class Config:
         # Sanity Check.
         if 0 in self.use_views:
             raise ValueError(f"Use_views are 1-indexed, expect list without 0, but got {self.use_views}")
+            
+        if not os.path.exists(self.visualize["visualize_path"]) and self.visualize["visualize"]:
+            write_path = self.visualize["visualize_path"]
+            print(f"Visualization output path {write_path} not exist, make one.")
+            os.mkdir(self.visualize["visualize_path"])
 
 if __name__ == "__main__":
     # python triangulation.py -y "triangulation.yaml"
@@ -44,7 +50,7 @@ if __name__ == "__main__":
     if config.visualize["visualize"]:
         if config.tracker_id == -1:
             raise ValueError("Visualization does not support -1 tracker_id (all tracklet).")
-        visualize_3D_joint_traj( config )
+        visualize_3D_joint_traj(data, config )
         # write visualized 3d joint in to a video.
         make_video_from_dir("./joint_3d_visualize/", "./joint_3d_visualize/3d_video.avi", fps=3)
 
@@ -61,5 +67,9 @@ if __name__ == "__main__":
 
     # Triangulate and save output pickles:
     if config.save_3d_joints:
-        joints_3d = estimate_3D_points(data, config)
+        if config.tracker_id == -1:
+            raise ValueError("save_3d_joints does not support -1 tracker_id (all tracklet).")
+        else:
+            joints_3d = estimate_3D_points(data, config, config.tracker_id)
+
         save_3d_joints_estimation(joints_3d, config.output_path, config.tracker_id)

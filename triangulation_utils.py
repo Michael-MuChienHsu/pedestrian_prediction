@@ -63,7 +63,7 @@ def show_2d_joint(view_num, sess_num, frame_num, kp, out_path="test_skeleton.png
 
     cv2.imwrite(out_path, img)
 
-def visualize_3D_joint_traj(config):
+def visualize_3D_joint_traj(data, config):
     """
     1. I/O
     Read intrinsic, extrinsic from 2 view: view1 and view2.
@@ -222,6 +222,9 @@ def estimate_3D_points(data, config, tracker_id):
     Returns:
         estimated_3d: N x 17 x 3 joints.
     """
+    if tracker_id == -1:
+        raise ValueError("estimate_3d_points do not support tracker_id -1 for now.")
+
     view_nums = config.use_views
     sess_num = config.video_num
     smoothing = config.smoothing["smoothing"]
