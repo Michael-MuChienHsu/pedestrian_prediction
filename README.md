@@ -8,12 +8,13 @@
 5. [References](#ref).<br />
 
 ##  <a name="data_setup"></a>Data setup
-3d_extracted_joints: joints  <br />
-video_data_n1, video_data_n2, video_data_n3: Files C_.mat: intrinsic matrix, H_.mat: homography.  <br />
-label: tracklets.  <br />
-extrinsics: Extrinsic matrix. Video (session) 0 1 2 3 share same extrinsic and 4 5 6 7 share same extrinsics.  <br />
+***Folders***:
+***3d_extracted_joints***: joints  <br />
+***video_data_n1***, ***video_data_n2***, ***video_data_n3***: Files C_.mat: intrinsic matrix, H_.mat: homography.  <br />
+***label***: tracklets.  <br />
+***extrinsics***: Extrinsic matrix. Video (session) 0 1 2 3 share same extrinsic and 4 5 6 7 share same extrinsics.  <br />
 
-We only provide 0.pickle for 3d joints in this repo, others can be downloaded at [google drive](https://drive.google.com/drive/folders/1tIlMNJRF0iSb5K90ICHJPa-NwZdKWWQc?usp=share_link)
+We only provide 0.pickle for 3d joints in this repo, others can be downloaded at [google drive link](https://drive.google.com/drive/folders/1tIlMNJRF0iSb5K90ICHJPa-NwZdKWWQc?usp=share_link)
 ```
 3d_extracted_joints
     └——————0.pickle
