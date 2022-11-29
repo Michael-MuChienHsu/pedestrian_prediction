@@ -20,6 +20,9 @@ labels
     └——————...
     └——————7_frame.txt
     └——————7.txt
+extrinsics
+    └——————extrinsics_sess_0_1_2_3.mat
+    └——————extrinsics_sess_4_5_6_7.mat    
 joint_3d_visualize
 utils.py
 triangulation.yaml
