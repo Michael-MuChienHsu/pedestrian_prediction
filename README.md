@@ -8,7 +8,7 @@
 5. [References](#ref).<br />
 
 ##  <a name="data_setup"></a>Data setup
-***Folders***:
+***Folders***: <br />
 ***3d_extracted_joints***: joints  <br />
 ***video_data_n1***, ***video_data_n2***, ***video_data_n3***: Files C_.mat: intrinsic matrix, H_.mat: homography.  <br />
 ***label***: tracklets.  <br />
