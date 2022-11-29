@@ -207,7 +207,7 @@ def visualize_3D_joint_traj(data, config):
         for _s, _e, _c in zip( start_3d, end_3d, _SKELETON_COLOR ):
             ax.plot([_s[0], _e[0]], [_s[1], _e[1]], [_s[2], _e[2] ], color = _c )
 
-        plt.savefig(f"./joint_3d_visualize/track_frame_{str(i).zfill(3)}.png")
+        plt.savefig(os.path.join(config.visualize["visualize_path"], f"track_frame_{str(i).zfill(3)}.png"))
     plt.savefig(f"./joints_3d_{tracker_id}.png")
 
 def estimate_3D_points(data, config, tracker_id):
