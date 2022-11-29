@@ -79,6 +79,7 @@ def visualize_3D_joint_traj(data, config):
     4. Force the standing on ground constraint, align the skeleton's such that its z_min on z=0 plane 
     
     Args:
+        data: Multiview 2d joint dictionary
         config: Configuration.
     Returns:
         None
