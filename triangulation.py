@@ -45,6 +45,8 @@ if __name__ == "__main__":
         if config.tracker_id == -1:
             raise ValueError("Visualization does not support -1 tracker_id (all tracklet).")
         visualize_3D_joint_traj( config )
+        # write visualized 3d joint in to a video.
+        make_video_from_dir("./joint_3d_visualize/", "./joint_3d_visualize/3d_video.avi", fps=3)
 
     # Display MPJPE
     if config.MPJPE:
@@ -56,8 +58,6 @@ if __name__ == "__main__":
         else:
             mpjpe_list = get_n_view_mpjpe(data, config, P_list, config.tracker_id)
             display_single_tracker_MPJPE(mpjpe_list, config.use_views, config.tracker_id)
-
-    # make_video_from_dir("./joint_3d_visualize/", "./joint_3d_visualize/3d_video.avi", fps=3)
 
     # Triangulate and save output pickles:
     if config.save_3d_joints:
