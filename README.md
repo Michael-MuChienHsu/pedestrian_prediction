@@ -1,4 +1,6 @@
 # Modeling and Understanding Pedestrian Behavior
+In this project we proposed a new method to predict pedestrain's trajectory in 3D space with multuple 2D views. Our methoed combines deep learning based method to tackle the difficult joint detection tasks and trajextory prediction task, and geometry methods to estimate joint poses from different views. <br />
+This project focuses on complex predestrain walking scenes recorded with bird-eye-view cameras.
 
 ## Contents
 1. [Data setup](#data_setup).<br />
@@ -46,10 +48,13 @@ triangulation.py
 `python triangulation.py -y "triangulation.yaml"`
 
 ## <a name="network"></a>3D Trajectrory prediction network.
+Thanks for Allen providing his [previous work](http://www.cs.cmu.edu/~epxing/Class/10708-19/assets/project/final-reports/project19.pdf) as our baseline model.
 
 ## <a name="ref">References
-1. [**Towards Rich, Portable, and Large-Scale Pedestrian Data Collection**](https://arxiv.org/abs/2203.01974) Wang, A., Biswas, A., Admoni, H., & Steinfeld, A. (2022) [Project website](https://tbd.ri.cmu.edu/resources/tbd-social-navigation-datasets/)
+1. <a name="TBD_dataset">[**Towards Rich, Portable, and Large-Scale Pedestrian Data Collection**](https://arxiv.org/abs/2203.01974) Wang, A., Biswas, A., Admoni, H., & Steinfeld, A. (2022) [Project website](https://tbd.ri.cmu.edu/resources/tbd-social-navigation-datasets/)
 2. [**ByteTrack: Multi-Object Tracking by Associating Every Detection Box**](https://arxiv.org/abs/2110.06864) , Yifu Z. et al. ECCV 2022. [Github](https://github.com/ifzhang/ByteTrack)
+3. <a name="allen_proj"></a>[**Pedestrian Trajectory Prediction with Graph Neural Networks**](http://www.cs.cmu.edu/~epxing/Class/10708-19/assets/project/final-reports/project19.pdf), Allan Wang, Zirui Wang , and Wentao Yuan.
+
  
 ---------------------------------------
 ## TODO:
