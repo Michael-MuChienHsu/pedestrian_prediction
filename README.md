@@ -8,6 +8,7 @@
 5. [References](#ref).<br />
 
 ##  <a name="data_setup"></a>Data setup
+We only provide 0.pickle for 3d joints in this repo, others can be downloaded at [google drive](https://drive.google.com/drive/folders/1tIlMNJRF0iSb5K90ICHJPa-NwZdKWWQc?usp=share_link)
 ```
 3d_extracted_joints
     └——————0.pickle
