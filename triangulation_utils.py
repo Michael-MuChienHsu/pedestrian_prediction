@@ -17,7 +17,7 @@ _SKELETON_COLOR =   [_RGB_BODY, _RGB_BODY, _RGB_BODY, _RGB_BODY,
 
 def get_skeleton_start_end_point(  kp_3d, use_high_conf_filter, mask ):
     """Given 17 joins, return start and end points to connect joints.
-    DO NOT MODIFY.
+    HAND CARVED FEATURES, DO NOT MODIFY.
 
     Args:
         kp_3d: 3x17 inputs
@@ -47,16 +47,17 @@ def get_skeleton_start_end_point(  kp_3d, use_high_conf_filter, mask ):
     start_points, end_points = np.transpose(np.array(high_conf_edge_points), (1, 0, 2)) 
     return np.array(start_points), np.array(end_points)
 
-def show_2d_joint(view_num, sess_num, frame_num, kp, out_path="test_skeleton.png"):
+def show_2d_joint(image_path, kp, out_path="test_skeleton.png"):
     """Visualize detected 2D joints on frame.
 
     Args:
-        view_num:
-        sess_num:
-        frame_num:
-        kp: 17x2 keypoints in 2d
+        image_path: path to image to write joints on.
+        kp: 17x2 keypoints in 2d.
+        out_path: path to write 2d joints.
+    
+    Returns:
+        None
     """
-    image_path =  f"./video_data_n{view_num}/tepper_{sess_num}_frames/frame_{str(frame_num).zfill(4)}.png"
     img = cv2.imread(image_path)
     for i, _x_y in enumerate(kp):
         cv2.circle( img, _x_y, 5, (0, 0, 255),  -1)

@@ -7,12 +7,9 @@ smoothing:
 use_high_conf_filter: False
 high_conf_threshold: 0.5
 use_views: [1, 2]
-# Save triangulated points arguements
-save_3d_joints: False
-output_skeleton_path: "./estimated_3d_joints/"
 # Visualization arguements
 visualize: 
-  visualize: True
+  visualize: Falase
   sample_rate: 20
   max_frame: 10
   overlay_frames: True
@@ -20,3 +17,6 @@ visualize:
   visualize_path: "./test/"
 # Calculate MPJPE arguemnts
 MPJPE: True
+# Save triangulated points arguements
+save_3d_joints: True
+output_skeleton_path: "./estimated_3d_joints/"
