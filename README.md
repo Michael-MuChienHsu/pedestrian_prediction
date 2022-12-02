@@ -38,6 +38,7 @@ extrinsics
 joint_3d_visualize
 utils.py
 triangulation.yaml
+triangulation_config.yaml
 triangulation_utils.py
 triangulation.py
 ```
