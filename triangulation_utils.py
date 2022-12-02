@@ -103,7 +103,6 @@ def visualize_3D_joint_traj(data, config):
     traj_starts = []
     video_starts = []
     for view in view_nums:
-
         K, k, H, traj_start_frames, start_frame, trajectory, extrinsic = get_param(view_num = view,
                                                                                    video_num = sess_num,
                                                                                    tracker_id = tracker_id)
@@ -338,14 +337,13 @@ def get_MPJPE(pts_3d, pts_2d, P):
     """Calculate MPJPE: mean per joint position error.
     
     Args:
-        pts_3d: joints in 3d space. Nx17x3
-        pts_2d: joints in 2d frame. Nx17x2
+        pts_3d: joints in 3d space. Nx17x3.
+        pts_2d: joints in 2d frame. Nx17x2.
         P: camera parameter.
 
     Returns:
         error: MPJPE
     """
-
     pts_2d = pts_2d.reshape(-1, 2)
     pts_3d = pts_3d.reshape(-1, 3)
     pts_3d = np.hstack([pts_3d, np.ones((pts_3d.shape[0], 1))]) 
@@ -391,39 +389,81 @@ def get_n_view_mpjpe(data, config, P_list, tracker_id):
     return mpjpe_list
 
 def display_single_tracker_MPJPE(mpjpe_list, use_views, _id):
+    """Display MPJPE on terminal."""
     print_str = f"label {_id}"
     for _mpjpe,  _view in zip(mpjpe_list, use_views):
         print_str += f" view {_view}: {_mpjpe*2.54} cm"
 
     print(print_str)
 
-# TODO
-def save_3d_joints_estimation(estimated_3d_joints, gt_trajectort, output_dir, sess, tracker_id):
-    """Save reconstructed 3D joints to a dictionary.
+
+def save_3d_joints_estimation(estimated_3d_joints, gt_trajectort, mpjpe, sess, tracker_id, output_dir):
+    """Save reconstructed 3D joints to a list of dictionaries.
+    [save_dict, save_dict, save_dict, ...] where each save_dict:
     save_dict = { 
-        "3d_joints": np.ndarray with shape Nx17x3
-        "3d_trajectoy": Ground truth trajectory on z=0 plane with shape Nx3
+        "3d_joints": np.ndarray with shape Nx17x3.
+        "3d_trajectoy": Ground truth trajectory on z=0 plane with shape Nx3.
+        "error": mean MPJPE score.
      }
 
     Args:
         estimated_3d_joints: 3d joint estimated using triangulation.
         gt_trajectort: grond truth trajectory provided from dataset.
+        mpjpe: mpjpe
         sess: video num of where the 3d joint is estimated from.
-        tracker_id: tracklet's label. 
+        tracker_id: tracklet's label.
+        output_dir: folder to write npz.
 
     Returns:    
-        None
+        output_path: path to the saved npy file.
     """
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
-    output_path = os.path.joint(output_dir, f"joint_3d_s{sess}_id{tracker_id}.npz")
-    save_dict = dict()
-    save_dict["3d_joints"] = estimated_3d_joints
-    save_dict["3d_trajectoy"] = gt_trajectort
-    np.save( output_path, save_dict )    
+    if tracker_id == -1:
+        output_path = os.path.join(output_dir, f"video_{sess}_joint_3d_.npy")
+    else:
+        output_path = os.path.join(output_dir, f"video_{sess}_joint_3d_id_{tracker_id}.npy")
+    
+
+    save_dict_list = []
+    for _3d_joints, _gt_traj, _mpjpe in zip(estimated_3d_joints, gt_trajectort, mpjpe):
+        save_dict = dict()
+        save_dict["3d_joints"]    = _3d_joints
+        save_dict["3d_trajectoy"] = _gt_traj
+        save_dict["error"]        = _mpjpe
+        save_dict_list.append(save_dict)
+
+    print(f"Save file to {output_path}")
+    np.save( output_path, [save_dict] ,allow_pickle=True)
+    return output_path    
+
+# TODO
+def read_3d_joints(path):
+    """Read saved 3d joint list of dictionary.
+    
+    Args:
+        path: path to .npz file.
+    
+    Returns: 
+        joint_dict_list = list of dictionary. 
+    """
+    joint_dict_list = np.load(path, allow_pickle=True)
+    
+    print(len(joint_dict_list))
+    print(len(joint_dict_list[0]["error"]))
+
+    return joint_dict_list
 
 def setup_multicamera(config):
-    """Setup multiview camera parameters."""
+    """Setup multiview camera parameters.
+    
+    Args:
+        config: yaml config files.
+    
+    Returns:
+        P_list: list pof camera parameters.
+        trajectory: Ground truth trajectory in 3D, independent to view_num.
+    """
     K, k, H, traj_start_frames, start_frame, trajectory, extrinsic = get_param(view_num = 1,
                                                                                video_num = config.video_num,
                                                                                tracker_id = config.tracker_id)
@@ -441,4 +481,4 @@ def setup_multicamera(config):
     P = [-1, P1, P2, P3]
     P_list = [ P[i] for i in config.use_views ]
 
-    return P_list, len(trajectory)
+    return P_list, trajectory
