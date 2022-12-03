@@ -1,5 +1,5 @@
 import pickle
-from utils import get_param, read_frame, triangulate, make_video_from_dir, to_homo
+from utils import get_param, triangulate, to_homo
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
@@ -397,20 +397,19 @@ def display_single_tracker_MPJPE(mpjpe_list, use_views, _id):
 
     print(print_str)
 
-
 def save_3d_joints_estimation(estimated_3d_joints, gt_trajectort, mpjpe, sess, tracker_id, output_dir):
     """Save reconstructed 3D joints to a list of dictionaries.
-    [save_dict, save_dict, save_dict, ...] where each save_dict:
-    save_dict = { 
-        "3d_joints": np.ndarray with shape Nx17x3.
-        "3d_trajectoy": Ground truth trajectory on z=0 plane with shape Nx3.
-        "error": mean MPJPE score.
-     }
+    [save_dict, save_dict, save_dict, ...] where each save_dict with format:
+        save_dict = { 
+            "3d_joints": np.ndarray with shape Nx17x3.
+            "3d_trajectoy": Ground truth trajectory on z=0 plane with shape Nx3.
+            "error": mean MPJPE score.
+        }
 
     Args:
-        estimated_3d_joints: 3d joint estimated using triangulation.
-        gt_trajectort: grond truth trajectory provided from dataset.
-        mpjpe: mpjpe
+        estimated_3d_joints: 3d joint estimated using triangulation. Type: ndarray or list of ndarray.
+        gt_trajectort: grond truth trajectory provided from dataset. Type: ndarray or ndarray of ndarray objects.
+        mpjpe: mpjpe. Type: float or list of float
         sess: video num of where the 3d joint is estimated from.
         tracker_id: tracklet's label.
         output_dir: folder to write npz.
@@ -425,7 +424,6 @@ def save_3d_joints_estimation(estimated_3d_joints, gt_trajectort, mpjpe, sess, t
     else:
         output_path = os.path.join(output_dir, f"video_{sess}_joint_3d_id_{tracker_id}.npy")
     
-
     save_dict_list = []
     for _3d_joints, _gt_traj, _mpjpe in zip(estimated_3d_joints, gt_trajectort, mpjpe):
         save_dict = dict()
@@ -435,23 +433,24 @@ def save_3d_joints_estimation(estimated_3d_joints, gt_trajectort, mpjpe, sess, t
         save_dict_list.append(save_dict)
 
     print(f"Save file to {output_path}")
-    np.save( output_path, [save_dict] ,allow_pickle=True)
+    np.save( output_path, save_dict_list ,allow_pickle=True)
     return output_path    
 
 # TODO
 def read_3d_joints(path):
     """Read saved 3d joint list of dictionary.
-    
+        save_dict = { "3d_joints": np.ndarray with shape Nx17x3.
+                      "3d_trajectoy": Ground truth trajectory on z=0 plane with shape Nx3.
+                      "error": mean MPJPE score. }
+
     Args:
         path: path to .npz file.
     
     Returns: 
         joint_dict_list = list of dictionary. 
     """
+    print(f"load from path: {path}")
     joint_dict_list = np.load(path, allow_pickle=True)
-    
-    print(len(joint_dict_list))
-    print(len(joint_dict_list[0]["error"]))
 
     return joint_dict_list
 
@@ -462,7 +461,7 @@ def setup_multicamera(config):
         config: yaml config files.
     
     Returns:
-        P_list: list pof camera parameters.
+        P_list: list pof camera parameters. First element is -1 for sanity check.
         trajectory: Ground truth trajectory in 3D, independent to view_num.
     """
     K, k, H, traj_start_frames, start_frame, trajectory, extrinsic = get_param(view_num = 1,

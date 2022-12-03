@@ -6,7 +6,6 @@ from triangulation_utils import *
 from triangulation_config import triangulation_configuratrion
 
 if __name__ == "__main__":
-    # python triangulation.py -y "triangulation.yaml"
     parser = argparse.ArgumentParser()
     parser.add_argument("-y", "--yaml_path", type = str, default="triangulation.yaml", help="Path to yaml.")    
     args = parser.parse_args()
@@ -15,10 +14,11 @@ if __name__ == "__main__":
     # Load 2d joints.
     f = open(config.detected_joint_path, 'rb')
     data = pickle.load(f)
-
+    
     # Set up multiview camera parameter.
     P_list, trajectory = setup_multicamera(config) # trajectory tracklet ground truth trajectory.
     num_tracklet = len(trajectory)
+
 
     # Visualize 3d joints over time.
     if config.visualize["visualize"]:
@@ -27,6 +27,7 @@ if __name__ == "__main__":
         visualize_3D_joint_traj(data, config )
         # write visualized 3d joint in to a video.
         make_video_from_dir("./joint_3d_visualize/", "./joint_3d_visualize/3d_video.avi", fps=3)
+
 
     # Display MPJPE
     if config.MPJPE:
@@ -39,10 +40,10 @@ if __name__ == "__main__":
             mpjpe_list = get_n_view_mpjpe(data, config, P_list, config.tracker_id)
             display_single_tracker_MPJPE(mpjpe_list, config.use_views, config.tracker_id)
 
+
     # Triangulate and save output pickles:
     if config.save_3d_joints:
         if config.tracker_id == -1:
-            # raise ValueError("save_3d_joints does not support -1 tracker_id (all tracklet).")
             joints_3d_list = []
             mpjpe_list = []
 
@@ -52,14 +53,10 @@ if __name__ == "__main__":
                 joints_3d_list.append(_joints_3d )
                 mpjpe_list.append( np.array(_mpjpe_list).mean() )
             
-            save_3d_joints_estimation(joints_3d_list, trajectory, mpjpe_list, config.video_num, config.tracker_id, config.output_path)
+            saved_path = save_3d_joints_estimation(joints_3d_list, trajectory, mpjpe_list, config.video_num, config.tracker_id, config.output_path)
 
         else:
             joints_3d = estimate_3D_points(data, config, config.tracker_id)
             mpjpe_list = get_n_view_mpjpe(data, config, P_list, config.tracker_id)
             mpjpe = np.array(mpjpe_list).mean()
-            save_3d_joints_estimation(joints_3d, trajectory, mpjpe, config.video_num, config.tracker_id, config.output_path)
-
-    # DEBUG
-    read_3d_joints("./estimated_3d_joints/video_0_joint_3d_id_0.npy")
-    exit()
+            saved_path = save_3d_joints_estimation(joints_3d, trajectory, mpjpe, config.video_num, config.tracker_id, config.output_path)
