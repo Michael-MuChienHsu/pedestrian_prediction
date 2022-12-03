@@ -13,10 +13,9 @@ visualize:
   sample_rate: 20
   max_frame: 10
   overlay_frames: True
-  # visualize_path: "./joint_3d_visualize/"
-  visualize_path: "./test/"
+  visualize_path: "./joint_3d_visualize/"
 # Calculate MPJPE arguemnts
-MPJPE: False
+MPJPE: True
 # Save triangulated points arguements
-save_3d_joints: True
+save_3d_joints: False
 output_skeleton_path: "./estimated_3d_joints/"

@@ -26,7 +26,8 @@ if __name__ == "__main__":
             raise ValueError("Visualization does not support -1 tracker_id (all tracklet).")
         visualize_3D_joint_traj(data, config )
         # write visualized 3d joint in to a video.
-        make_video_from_dir("./joint_3d_visualize/", "./joint_3d_visualize/3d_video.avi", fps=3)
+        write_video_path = os.path.join(config.visualize["visualize_path"], "3d_video.avi") 
+        make_video_from_dir(config.visualize["visualize_path"], write_video_path, fps=3)
 
 
     # Display MPJPE
@@ -59,4 +60,6 @@ if __name__ == "__main__":
             joints_3d = estimate_3D_points(data, config, config.tracker_id)
             mpjpe_list = get_n_view_mpjpe(data, config, P_list, config.tracker_id)
             mpjpe = np.array(mpjpe_list).mean()
-            saved_path = save_3d_joints_estimation(joints_3d, trajectory, mpjpe, config.video_num, config.tracker_id, config.output_path)
+            saved_path = save_3d_joints_estimation([joints_3d], [trajectory], [mpjpe], config.video_num, config.tracker_id, config.output_path)
+
+        # read_3d_joints(saved_path)

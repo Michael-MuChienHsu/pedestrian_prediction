@@ -334,8 +334,8 @@ def get_2d_joints(kp_dict, sess, view, tracklet_id, threshold = 0.5):
     return joints_2d, high_conf_mask
 
     
-def get_MPJPE(pts_3d, pts_2d, P):
-    """Calculate MPJPE: mean per joint position error.
+def get_2d_MPJPE(pts_3d, pts_2d, P):
+    """Calculate 2d MPJPE: mean per joint position error.
     
     Args:
         pts_3d: joints in 3d space. Nx17x3.
@@ -384,7 +384,7 @@ def get_n_view_mpjpe(data, config, P_list, tracker_id):
     mpjpe_list = []
     for _view, _P in zip(view_num_list, P_list):
         _joints_2d_view, _= get_2d_joints( data, sess, _view, tracker_id )
-        _mpjpe = get_MPJPE(joints_3d, _joints_2d_view, _P)
+        _mpjpe = get_2d_MPJPE(joints_3d, _joints_2d_view, _P)
         mpjpe_list.append( _mpjpe )
 
     return mpjpe_list
@@ -393,7 +393,7 @@ def display_single_tracker_MPJPE(mpjpe_list, use_views, _id):
     """Display MPJPE on terminal."""
     print_str = f"label {_id}"
     for _mpjpe,  _view in zip(mpjpe_list, use_views):
-        print_str += f" view {_view}: {_mpjpe*2.54} cm"
+        print_str += f" view {_view}: {_mpjpe} pixel"
 
     print(print_str)
 
@@ -407,9 +407,9 @@ def save_3d_joints_estimation(estimated_3d_joints, gt_trajectort, mpjpe, sess, t
         }
 
     Args:
-        estimated_3d_joints: 3d joint estimated using triangulation. Type: ndarray or list of ndarray.
-        gt_trajectort: grond truth trajectory provided from dataset. Type: ndarray or ndarray of ndarray objects.
-        mpjpe: mpjpe. Type: float or list of float
+        estimated_3d_joints: 3d joint estimated using triangulation. Type: list of ndarray.
+        gt_trajectort: grond truth trajectory provided from dataset. Type: list of ndarray.
+        mpjpe: mpjpe. Type: list of float
         sess: video num of where the 3d joint is estimated from.
         tracker_id: tracklet's label.
         output_dir: folder to write npz.
