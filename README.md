@@ -49,7 +49,7 @@ triangulation.py
 `python triangulation.py -y "triangulation.yaml"`
 
 ## <a name="network"></a>3D Trajectrory prediction network.
-Thanks for Allen providing his [previous work](http://www.cs.cmu.edu/~epxing/Class/10708-19/assets/project/final-reports/project19.pdf) as our baseline model.
+Thanks for Allen providing his [previous work](http://www.cs.cmu.edu/~epxing/Class/10708-19/assets/project/final-reports/project19.pdf) as our baseline model. The model provided is heavyly build on top of this work.
 
 ## <a name="ref">References
 1. <a name="TBD_dataset">[**Towards Rich, Portable, and Large-Scale Pedestrian Data Collection**](https://arxiv.org/abs/2203.01974) Wang, A., Biswas, A., Admoni, H., & Steinfeld, A. (2022) [Project website](https://tbd.ri.cmu.edu/resources/tbd-social-navigation-datasets/)

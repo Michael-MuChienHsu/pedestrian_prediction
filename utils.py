@@ -28,9 +28,11 @@ def to_homo(points):
     return np.hstack( [points, np.ones( (points.shape[0], 1) )] )
 
 def load_mat_dict(mat_path):
+    """Load .mat fomat file."""
     return sio.loadmat(mat_path)
 
 def video_to_frame(video_path, output_path, start_frame=0):
+    """Read video and write frams to output_path."""
     vidcap = cv2.VideoCapture(video_path)
     success, image = vidcap.read()
     count = 0
@@ -256,8 +258,7 @@ def draw_trajtory( video_dir, output_dir, view_num, video_num, tracker_id):
     cv2.imwrite(f"./whole_traj/last_frame_{view_num}_video_{video_num}_label_{tracker_id}.png", last_frame)
 
 def to_skew(pts):
-    """Transform a vector to skew symmetric to for cross product."""
-
+    """Transform 3d vector(s) to skew symmetric matrix."""
     x, y, z = pts.T
     x, y, z = x[:, None], y[:, None], z[:, None]
     zeros = np.zeros_like( x )
@@ -279,7 +280,7 @@ def triangulate(P_list, pts_list):
         _3d_points: Nx4 points in 3D    
     """
     if len(P_list) != len(pts_list):
-        raise ValueError("Expect same number of views and corresponding keypoints.")
+        raise ValueError(f"Expect same number of views and corresponding keypoints. Got {len(P_list)} and {len(pts_list)}.")
 
     skew_list = [ to_skew(to_homo(pts)) for pts in pts_list ]
     cons_list = [ pts_skew@P for pts_skew, P in zip(skew_list, P_list) ]

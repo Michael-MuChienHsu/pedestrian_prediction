@@ -4,7 +4,7 @@ import argparse
 
 from utils import make_video_from_dir
 from triangulation_utils import *
-from triangulation_config import triangulation_configuratrion
+from config.triangulation_config import triangulation_config
 
 def viuslaization(data, config):
     # Visualize 3d joints over time.
@@ -48,7 +48,11 @@ def save_joints(data, config, P_list, num_tracklet, trajectory):
     print("Test loading.")
     read_3d_joints(saved_path)
 
-def main(config):
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-y", "--yaml_path", type = str, default="triangulation.yaml", help="Path to yaml.")    
+    args = parser.parse_args()
+    config = triangulation_config(args.yaml_path)
 
     # Load 2d joints.
     f = open(config.detected_joint_path, 'rb')
@@ -68,8 +72,4 @@ def main(config):
         save_joints(data, config, P_list, num_tracklet, trajectory)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-y", "--yaml_path", type = str, default="triangulation.yaml", help="Path to yaml.")    
-    args = parser.parse_args()
-    config = triangulation_configuratrion(args.yaml_path)
-    main(config)
+    main()

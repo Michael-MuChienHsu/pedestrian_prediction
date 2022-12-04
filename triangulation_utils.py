@@ -436,7 +436,6 @@ def save_3d_joints_estimation(estimated_3d_joints, gt_trajectort, mpjpe, sess, t
     np.save( output_path, save_dict_list ,allow_pickle=True)
     return output_path    
 
-# TODO
 def read_3d_joints(path):
     """Read saved 3d joint list of dictionary.
         save_dict = { "3d_joints": np.ndarray with shape Nx17x3.
