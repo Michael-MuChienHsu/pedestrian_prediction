@@ -49,7 +49,7 @@ triangulation.py
 `python triangulation.py -y "./config/triangulation.yaml"`
 
 ## <a name="network"></a>3D Trajectrory prediction network.
-Thanks for Allen providing his [previous work](http://www.cs.cmu.edu/~epxing/Class/10708-19/assets/project/final-reports/project19.pdf) as our baseline model. The model provided is built on top of this work.
+Thanks for Allen providing his [previous work](http://www.cs.cmu.edu/~epxing/Class/10708-19/assets/project/final-reports/project19.pdf) as our baseline model. The model provided is built on top of this work. <br />
 `python train_model.py -y "./config/train_config.yaml"`
 
 ## <a name="ref">References
