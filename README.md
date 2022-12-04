@@ -46,11 +46,11 @@ triangulation.py
 ## <a name="use_bytetrack"></a>2D joint estimation with Byte Track.
 
 ## <a name="triangulation"></a>Triangulation using multiview 2D joints.
-`python triangulation.py -y "./config/triangulation.yaml"`
+To git 3d joints with triangulation: `python triangulation.py -y "./config/triangulation.yaml"`
 
-## <a name="network"></a>3D Trajectrory prediction network.
-Thanks for Allen providing his [previous work](http://www.cs.cmu.edu/~epxing/Class/10708-19/assets/project/final-reports/project19.pdf) as our baseline model. The model provided is built on top of this work. <br />
-`python train_model.py -y "./config/train_config.yaml"`
+## <a name="network"></a>Baseline 3D Trajectrory prediction model.
+Thanks for Allen providing his [previous work](http://www.cs.cmu.edu/~epxing/Class/10708-19/assets/project/final-reports/project19.pdf) as our baseline model. Our baseline model is built on top of his work. <br />
+To train prediction model: `python train_model.py -y "./config/train_config.yaml"`
 
 ## <a name="ref">References
 1. <a name="TBD_dataset">[**Towards Rich, Portable, and Large-Scale Pedestrian Data Collection**](https://arxiv.org/abs/2203.01974) Wang, A., Biswas, A., Admoni, H., & Steinfeld, A. (2022) [Project website](https://tbd.ri.cmu.edu/resources/tbd-social-navigation-datasets/)
