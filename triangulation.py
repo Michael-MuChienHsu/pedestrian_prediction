@@ -1,3 +1,10 @@
+"""
+Triangulation contains 3 functions:
+(1) viuslaization: triangulate and visualize joints in 3d.
+(2) calculate_MPJPE: calculate MPJPE between 2d and reprojected 2d joint.  
+(3) save_joints: triangualte and save joints, trajectories, and error to .npy file.
+"""
+
 import pickle
 import numpy as np
 import argparse
@@ -16,7 +23,7 @@ def viuslaization(data, config):
     make_video_from_dir(config.visualize["visualize_path"], write_video_path, fps=3)
 
 
-def MPJPE(data, config, P_list, num_tracklet):
+def calculate_MPJPE(data, config, P_list, num_tracklet):
     if config.tracker_id == -1:
         for _id in range(num_tracklet):
             mpjpe_list = get_n_view_mpjpe(data, config, P_list, _id)
@@ -66,7 +73,7 @@ def main():
         viuslaization(data, config)
 
     if config.calculate_MPJPE:
-        MPJPE(data, config, P_list, num_tracklet)
+        calculate_MPJPE(data, config, P_list, num_tracklet)
 
     if config.save_3d_joints:
         save_joints(data, config, P_list, num_tracklet, trajectory)

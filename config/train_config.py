@@ -23,6 +23,7 @@ class Dataset_config:
 
 class Train_config:
     def __init__(self, config):
+        self.num_epoch   = config["train_config"]
         self.batch_size  = config["batch_size"]
         self.obs_len     = config["obs_len"]
         self.pred_len    = config["pred_len"]

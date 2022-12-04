@@ -1,4 +1,5 @@
 train_config:
+  num_epoch: 100
   batch_size: 4
   obs_len: 8
   pred_len: 12
