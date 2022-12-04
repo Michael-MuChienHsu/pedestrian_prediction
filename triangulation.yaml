@@ -17,5 +17,5 @@ visualize:
 # Calculate MPJPE arguemnts
 MPJPE: True
 # Save triangulated points arguements
-save_3d_joints: False
+save_3d_joints: True
 output_skeleton_path: "./estimated_3d_joints/"

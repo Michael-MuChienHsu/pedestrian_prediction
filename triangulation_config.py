@@ -16,7 +16,7 @@ class triangulation_configuratrion:
         self.use_high_conf_filter = config["use_high_conf_filter"]
         self.use_views            = config["use_views"]
         self.visualize            = config["visualize"]
-        self.MPJPE                = config["MPJPE"]
+        self.calculate_MPJPE      = config["MPJPE"]
 
         # Sanity Check.
         if 0 in self.use_views:
