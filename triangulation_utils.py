@@ -1,9 +1,11 @@
 import pickle
-from utils import get_param, triangulate, to_homo
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+
+from smooth import my_smooth_3d_joints
+from utils import get_param, triangulate, to_homo
 
 _RGB_BODY = ( 1, 165/255,0 ) # orange
 _RGB_HEAD = (1, 0, 0) # red
@@ -35,6 +37,7 @@ def get_skeleton_start_end_point(  kp_3d, use_high_conf_filter, mask ):
                     4, 2, 1, 3, 0, 0, 4,
                     5, 7,11,13,
                     6, 8,12,14]
+                    
     end_points   = [6,11,12,11,
                     2, 1, 3, 5, 2, 1, 6,
                     7, 9,13,15,
@@ -71,14 +74,14 @@ def visualize_3D_joint_traj(data, config):
     view1 includes {points, K1, extrinsic1} has var name: {x1, K1, extrinsic1 }
     view2 includes {points, K2, extrinsic1} has var name: {x2, K2, extrinsic1 }
 
-    2. Triangulation for initial guess
+    2. Triangulation for initial guess and smooth (if necessary)
     camera metrix for view 1 and view 2: P1 = K1@extrinsic1, P2 = K2@extrinsic2
     Solve AX = 0, A = [ x1.cross(P1)
                         x2.cross(P2) ]
 
-    3. Z-axis is upside down, so flip z-axis
-    4. Force the standing on ground constraint, align the skeleton's such that its z_min on z=0 plane 
-    
+    3. Z-axis is upside down, so flip z-axis.
+    4. Write 3d images.
+
     Args:
         data: Multiview 2d joint dictionary
         config: Configuration.
@@ -98,6 +101,7 @@ def visualize_3D_joint_traj(data, config):
     if len(view_nums)<2:
         raise ValueError(f"Expect at least 2 views for triangulation, got {len(view_nums)}.")
 
+
     P_list = []
     kp_traj = []
     hign_conf_mask = []
@@ -113,25 +117,31 @@ def visualize_3D_joint_traj(data, config):
         hign_conf_mask.append(mask)
         traj_starts.append(traj_start_frames)
         video_starts.append(start_frame)
-
+    
     # Process lists to np.ndarrray
     kp_traj = np.array(kp_traj) # V x 17*N x 2
     hign_conf_mask = np.array(hign_conf_mask).reshape( len(hign_conf_mask), -1 ) # V x N*17
-
-    # TODO use_high_conf_filter
-    # if use_high_conf_filter:
-    #     estimated_3d = -np.ones( (kp_traj.shape[1], 3) ) # Buffer, 17*N x 3
-    #     estimated_high_conf_3d = triangulate(P_list, [_kp_traj[matching_table] for _kp_traj in kp_traj])
-    #     estimated_3d[matching_table] = estimated_high_conf_3d
-    # else:
-    #     estimated_3d = triangulate(P_list, kp_traj)
-
-    estimated_3d = triangulate(P_list, kp_traj)
-
-    # Magic operation for z axis is upside-down.
-    estimated_3d = estimated_3d.reshape(-1, 17, 3)
-    estimated_3d = estimated_3d*(np.array( [1, 1, -1] ).reshape(1, 1, 3))
     
+    estimated_3d = estimate_3D_points(data, config, tracker_id)
+    estimated_3d = [estimated_3d[i] for i in range(0, len(estimated_3d), sample_rate)][:max_frame]
+
+    # Step 4. Draw figure
+    # TODO Modulize this part
+    # Visualize 2d joints in coresponding 2d view.
+    # kp_traj[0] = kp_traj[0].reshape(-1, 17, 2)
+    # kp_traj[1] = kp_traj[1].reshape(-1, 17, 2)
+    # kp1 = [ kp_traj[0][i] for i in range(0, len(kp_traj[0]), sample_rate) ]
+    # kp2 = [ kp_traj[1][i] for i in range(0, len(kp_traj[1]), sample_rate) ]
+    # print( traj_starts[0], video_starts[0] )
+    # for i, (_kp1, _kp2) in enumerate(zip(kp1, kp2)):
+    #     show_2d_joint(1, sess_num, sample_rate*i+traj_starts[0]+video_starts[0], _kp1.astype(int), out_path=f"./view1_skeleton/label_{tracker_id}_frame{i}.png")
+    #     show_2d_joint(2, sess_num, sample_rate*i+traj_starts[1]+video_starts[1], _kp2.astype(int), out_path=f"./view2_skeleton/label_{tracker_id}_frame{i}.png")
+    #     if i+1 == max_frame: break
+
+    # union_mask: Takes only joints that are detected in all views with high confidence into account
+    union_mask = np.sum(hign_conf_mask, axis=0) >= hign_conf_mask.shape[0] # N*17
+    matching_table = np.where(union_mask) # N*17
+
     # set figure for visualization
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
@@ -145,49 +155,18 @@ def visualize_3D_joint_traj(data, config):
     ax.set_zlabel("Z")
 
     color_map = plt.get_cmap("jet")
-    # estimated_3d = [estimated_3d[i] for i in range(0, len(estimated_3d), sample_rate)]
     estimated_3d = [estimated_3d[i] for i in range(0, len(estimated_3d), sample_rate)][:max_frame]
     trajectory = [ trajectory[i] for i in range(0, len(trajectory), sample_rate) ]
 
-    # TODO Modulize this part
-    # Visualize 2d joints in coresponding 2d view.
-    # kp_traj[0] = kp_traj[0].reshape(-1, 17, 2)
-    # kp_traj[1] = kp_traj[1].reshape(-1, 17, 2)
-    # kp1 = [ kp_traj[0][i] for i in range(0, len(kp_traj[0]), sample_rate) ]
-    # kp2 = [ kp_traj[1][i] for i in range(0, len(kp_traj[1]), sample_rate) ]
-    # print( traj_starts[0], video_starts[0] )
-    # for i, (_kp1, _kp2) in enumerate(zip(kp1, kp2)):
-    #     show_2d_joint(1, sess_num, sample_rate*i+traj_starts[0]+video_starts[0], _kp1.astype(int), out_path=f"./view1_skeleton/label_{tracker_id}_frame{i}.png")
-    #     show_2d_joint(2, sess_num, sample_rate*i+traj_starts[1]+video_starts[1], _kp2.astype(int), out_path=f"./view2_skeleton/label_{tracker_id}_frame{i}.png")
-    #     if i+1 == max_frame: break
-
-    smoothing_offset = 0
-
-
-    # union_mask: Takes only joints that are detected in all views with high confidence into account
-    union_mask = np.sum(hign_conf_mask, axis=0) >= hign_conf_mask.shape[0] # N*17
-    matching_table = np.where(union_mask) # N*17
-    if smoothing:
-        estimated_3d = smooth_3d_joints( estimated_3d, max_sliding_window_length, use_high_conf_filter, union_mask)
+    # project 3D estimated trajectory to z=0 plane
+    estimated_trajectory = np.stack([estimated_3d[i].mean(axis=0) for i in range(0, len(estimated_3d))])
+    estimated_trajectory[:,2] = 0
 
     for i, (joints_3d, _mask) in enumerate( zip(estimated_3d, union_mask.reshape(-1, 17))):
         # color = color_map(i/float(len(smoothed_3d_joints)))
         color = (0, 0, 1)
-
+        est_color = (1, 0, 0)
         joints_3d = joints_3d.T
-        if False:
-            # TODO add use_high_conf_mask to only-z-smooth part    
-            # min_z = min(joints_3d[-1][:])
-            # max_z = max(joints_3d[-1][:])
-            # smoothing_offset = min_z
-
-            # sliding window min_z
-            smoothing_offset = np.mean(np.array(estimated_3d[max(0, i-10):min(len(estimated_3d), i+10)])[:, -2:, -1])
-
-            # normalize           
-            smoothing_offset = np.array( [ 0, 0, smoothing_offset] ).reshape(3, 1)
-            joints_3d = joints_3d - smoothing_offset
-            # print(f"person height: {2.54*(max_z-min_z)} cm")
 
         # plot joint
         if not overlay_frames:
@@ -202,13 +181,17 @@ def visualize_3D_joint_traj(data, config):
 
         # plot traj at time i 
         ax.scatter( *(trajectory[i]), color = color )
+        ax.scatter( *(estimated_trajectory[i]), color = est_color)
 
         # plot skeleton
-        start_3d, end_3d = get_skeleton_start_end_point(joints_3d, use_high_conf_filter, _mask)
+        # start_3d, end_3d = get_skeleton_start_end_point(joints_3d, use_high_conf_filter, _mask)
+        start_3d, end_3d = get_skeleton_start_end_point(joints_3d, False, _mask)
+
         for _s, _e, _c in zip( start_3d, end_3d, _SKELETON_COLOR ):
             ax.plot([_s[0], _e[0]], [_s[1], _e[1]], [_s[2], _e[2] ], color = _c )
 
         plt.savefig(os.path.join(config.visualize["visualize_path"], f"track_frame_{str(i).zfill(3)}.png"))
+        # print(config.visualize["visualize_path"], f"track_frame_{str(i).zfill(3)}.png")
     plt.savefig(f"./joints_3d_{tracker_id}.png")
 
 def estimate_3D_points(data, config, tracker_id):
@@ -252,17 +235,29 @@ def estimate_3D_points(data, config, tracker_id):
     hign_conf_mask = np.array(hign_conf_mask).reshape( len(hign_conf_mask), -1 ) # V x N*17
 
     estimated_3d = triangulate(P_list, kp_traj)
-    estimated_3d = estimated_3d.reshape(-1, 17, 3)
+    estimated_3d = estimated_3d.reshape(-1, 17, 3) # Magic operation for z axis is upside-down.
+    estimated_3d = estimated_3d*(np.array( [1, 1, -1] ).reshape(1, 1, 3))
 
-    # Flip z axis. If using view 1 and 2
-    # if view_nums == [1, 2] or view_nums == [1, 2, 3]:
-    #     estimated_3d[:, :, -1] *= -1
-    estimated_3d[:, :, -1] *= -1
+    if smoothing:       
+        for it in range(config.smoothing["iterations"]):
+            if config.smoothing["use_my_smooth"]:
+                estimated_3d = my_smooth_3d_joints( estimated_3d, max_sliding_window_length, it)
+            else:
+                estimated_3d = smooth_3d_joints( estimated_3d, max_sliding_window_length, use_high_conf_filter, hign_conf_mask)
 
-    if smoothing:
-        # union_mask: Takes only joints that are detected in all views with high confidence into account
-        union_mask = np.sum(hign_conf_mask, axis=0) >= hign_conf_mask.shape[0] # N*17
-        estimated_3d = smooth_3d_joints(estimated_3d, max_sliding_window_length, use_high_conf_filter, union_mask)
+            # Reprojection is linear, do not need to reprojection and triangulate before next iteration.
+            # kp_traj = [] 
+            # pts_3d = estimated_3d.reshape(-1, 3)
+            # pts_3d = np.hstack([pts_3d, np.ones((pts_3d.shape[0], 1))]) 
+            # pts_3d = pts_3d*(np.array( [1, 1, -1, 1] ).reshape(1, 4))
+            # for _view, _P in enumerate(P_list):
+            #     reprojected_2d_joint = pts_3d@(_P.T)
+            #     reprojected_2d_joint = (reprojected_2d_joint/reprojected_2d_joint[:, -1, None])[:, :2]
+            #     kp_traj.append(reprojected_2d_joint)   
+            #   
+            # estimated_3d = triangulate(P_list, kp_traj)
+            # estimated_3d = estimated_3d.reshape(-1, 17, 3) # Magic operation for z axis is upside-down.
+            # estimated_3d = estimated_3d*(np.array( [1, 1, -1] ).reshape(1, 1, 3))
    
     return estimated_3d
 
@@ -278,6 +273,16 @@ def smooth_3d_joints( estimated_3d, max_sliding_window_length, use_high_conf_fil
     Returns:  
         smoothed_3d_joints: 3d joints after smoothing. Nx17x3
     """
+    head_idx = np.array([0,1,2,3,4])
+    shoulder_idx = np.array([5,6])
+    elbow_idx = np.array([7,8])
+    hand_idx = np.array([9,10])
+    hip_idx = np.array([11,12])
+    knee_idx = np.array([13,14])
+    feet_idx = np.array([15,16])
+
+    idx = np.concatenate([head_idx,shoulder_idx,hip_idx])
+
     smoothed_3d_joints = np.empty( (0, 17, 3) )
     estimated_3d = np.array(estimated_3d)
     input_shape = np.array(estimated_3d).shape
@@ -305,7 +310,7 @@ def smooth_3d_joints( estimated_3d, max_sliding_window_length, use_high_conf_fil
 
     if use_high_conf_filter:
         smoothed_3d_joints_buffer = np.ones((input_shape[0]*17, 3))
-        print(smoothed_3d_joints.reshape(-1, 3).shape, smoothed_3d_joints_buffer.shape, smoothed_3d_joints_buffer[high_conf_mask].shape)
+        # print(smoothed_3d_joints.reshape(-1, 3).shape, smoothed_3d_joints_buffer.shape, smoothed_3d_joints_buffer[high_conf_mask].shape)
         smoothed_3d_joints_buffer[high_conf_mask] = smoothed_3d_joints.reshape(-1, 3)
         smoothed_3d_joints= smoothed_3d_joints_buffer
 

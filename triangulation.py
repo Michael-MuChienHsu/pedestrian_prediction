@@ -13,6 +13,7 @@ from utils import make_video_from_dir
 from triangulation_utils import *
 from config.triangulation_config import triangulation_config
 
+
 def viuslaization(data, config):
     # Visualize 3d joints over time.
     if config.tracker_id == -1:
@@ -20,7 +21,7 @@ def viuslaization(data, config):
     visualize_3D_joint_traj(data, config )
     # write visualized 3d joint in to a video.
     write_video_path = os.path.join(config.visualize["visualize_path"], "3d_video.avi") 
-    make_video_from_dir(config.visualize["visualize_path"], write_video_path, fps=3)
+    make_video_from_dir(config.visualize["visualize_path"], write_video_path, fps=config.visualize["write_fps"])
 
 
 def calculate_MPJPE(data, config, P_list, num_tracklet):
@@ -57,7 +58,7 @@ def save_joints(data, config, P_list, num_tracklet, trajectory):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-y", "--yaml_path", type = str, default="triangulation.yaml", help="Path to yaml.")    
+    parser.add_argument("-y", "--yaml_path", type = str, default="triangulation_config.yaml", help="Path to yaml.")    
     args = parser.parse_args()
     config = triangulation_config(args.yaml_path)
 
