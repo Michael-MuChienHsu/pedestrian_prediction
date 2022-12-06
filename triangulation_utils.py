@@ -118,7 +118,10 @@ def visualize_3D_joint_traj(data, config):
 
     # Process lists to np.ndarrray
     kp_traj = np.array(kp_traj) # V x 17*N x 2
+    pts_2d = kp_traj.copy()
     hign_conf_mask = np.array(hign_conf_mask).reshape( len(hign_conf_mask), -1 ) # V x N*17
+    union_mask = np.sum(hign_conf_mask, axis=0) >= hign_conf_mask.shape[0] # N*17
+    matching_table = np.where(union_mask) # N*17
 
     # TODO use_high_conf_filter
     # if use_high_conf_filter:
@@ -128,12 +131,6 @@ def visualize_3D_joint_traj(data, config):
     # else:
     #     estimated_3d = triangulate(P_list, kp_traj)
 
-    estimated_3d = triangulate(P_list, kp_traj)
-
-    # Magic operation for z axis is upside-down.
-    estimated_3d = estimated_3d.reshape(-1, 17, 3)
-    estimated_3d = estimated_3d*(np.array( [1, 1, -1] ).reshape(1, 1, 3))
-    
     # set figure for visualization
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
@@ -148,11 +145,8 @@ def visualize_3D_joint_traj(data, config):
 
     color_map = plt.get_cmap("jet")
     # estimated_3d = [estimated_3d[i] for i in range(0, len(estimated_3d), sample_rate)]
-    estimated_3d = [estimated_3d[i] for i in range(0, len(estimated_3d), sample_rate)][:max_frame]
     trajectory = [ trajectory[i] for i in range(0, len(trajectory), sample_rate) ]
     
-    estimated_trajectory = np.stack([estimated_3d[i].mean(axis=0) for i in range(0, len(estimated_3d))])
-    estimated_trajectory[:,2] = 0
     # TODO Modulize this part
     # Visualize 2d joints in coresponding 2d view.
     # kp_traj[0] = kp_traj[0].reshape(-1, 17, 2)
@@ -167,12 +161,38 @@ def visualize_3D_joint_traj(data, config):
 
     smoothing_offset = 0
     
-    # union_mask: Takes only joints that are detected in all views with high confidence into account
-    union_mask = np.sum(hign_conf_mask, axis=0) >= hign_conf_mask.shape[0] # N*17
-    matching_table = np.where(union_mask) # N*17
-    if smoothing:
-        #estimated_3d = smooth_3d_joints( estimated_3d, max_sliding_window_length, use_high_conf_filter, union_mask)
-        estimated_3d = my_smooth_3d_joints( estimated_3d, max_sliding_window_length, use_high_conf_filter, union_mask)
+    for it in range(config.iterations):
+        print("------iterations   %d------"%it)
+        estimated_3d = triangulate(P_list, kp_traj)
+
+        # Magic operation for z axis is upside-down.
+        estimated_3d = estimated_3d.reshape(-1, 17, 3)
+        estimated_3d = estimated_3d*(np.array( [1, 1, -1] ).reshape(1, 1, 3))    
+        estimated_3d = [estimated_3d[i] for i in range(0, len(estimated_3d), sample_rate)][:max_frame]
+        # union_mask: Takes only joints that are detected in all views with high confidence into account
+        
+        if smoothing:
+            #estimated_3d = smooth_3d_joints( estimated_3d, max_sliding_window_length, use_high_conf_filter, union_mask)
+            estimated_3d = my_smooth_3d_joints( estimated_3d, max_sliding_window_length, use_high_conf_filter, union_mask)
+
+        kp_traj = [] 
+        pts_3d = estimated_3d.reshape(-1, 3)
+        pts_3d = np.hstack([pts_3d, np.ones((pts_3d.shape[0], 1))]) 
+        pts_3d = pts_3d*(np.array( [1, 1, -1, 1] ).reshape(1, 4))
+        norm_diff_list = []
+        for _view,_P in enumerate(P_list):
+            reprojected_2d_joint = pts_3d@(_P.T)
+            reprojected_2d_joint = (reprojected_2d_joint/reprojected_2d_joint[:, -1, None])[:, :2]
+            kp_traj.append(reprojected_2d_joint) 
+            
+            diff = pts_2d[_view] - reprojected_2d_joint
+            norm_diff = np.linalg.norm(diff, axis=1)
+            norm_diff_list.append(norm_diff)
+        reprojection_error = np.mean(norm_diff_list)
+        print("reprojection error: %f  %f"%(norm_diff_list[0],norm_diff_list[1]))
+    
+    estimated_trajectory = np.stack([estimated_3d[i].mean(axis=0) for i in range(0, len(estimated_3d))])
+    estimated_trajectory[:,2] = 0
 
     for i, (joints_3d, _mask) in enumerate( zip(estimated_3d, union_mask.reshape(-1, 17))):
         # color = color_map(i/float(len(smoothed_3d_joints)))

@@ -17,6 +17,7 @@ class triangulation_configuratrion:
         self.use_views            = config["use_views"]
         self.visualize            = config["visualize"]
         self.MPJPE                = config["MPJPE"]
+        self.iterations           = config["iterations"]
 
         # Sanity Check.
         if 0 in self.use_views:
