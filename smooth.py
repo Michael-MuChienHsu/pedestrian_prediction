@@ -7,7 +7,7 @@ def get_cross_matrix(vec):
     mat = np.array(mat)
     return mat
 
-def my_smooth_3d_joints(estimated_3d, max_sliding_window_length, use_high_conf_filter, high_conf_mask):
+def my_smooth_3d_joints(estimated_3d, max_sliding_window_length, use_high_conf_filter, high_conf_mask, iteration):
     '''
     estimated_3d: N x 17 x 3  
     '''
@@ -53,7 +53,7 @@ def my_smooth_3d_joints(estimated_3d, max_sliding_window_length, use_high_conf_f
         print(name)
         anchor = estimated_3d[:, pair[0], :]
         joint = estimated_3d[:, pair[1], :]
-        smoothed_joint = smooth_angle(anchor,joint,max_sliding_window_length,name)
+        smoothed_joint = smooth_angle(anchor,joint,max_sliding_window_length,"%s_%d"%(name, iteration))
         smoothed_3d_joints[:,pair[1],:] = smoothed_joint
 
     return smoothed_3d_joints
@@ -106,20 +106,20 @@ def smooth_angle(anchor, joint, max_sliding_window_length, pair_name):
    
     smoothed_joint = smoothed_jointn + anchor
 
-    #plotx = np.arange(N)
-    #fig = plt.figure()
-    #plt.plot(plotx, jointn_norm,label='length')
-    #plt.plot(plotx, angles[:,0],label='angle x')
-    #plt.plot(plotx, angles[:,1],label='angle y')
-    #plt.plot(plotx, angles[:,2],label='angle z')
-    #
-    #plt.plot(plotx, smoothed_angles[:,0],label='smoothed angle x')
-    #plt.plot(plotx, smoothed_angles[:,1],label='smoothed angle y')
-    #plt.plot(plotx, smoothed_angles[:,2],label='smoothed angle z')
-    #plt.title(pair_name)
+    plotx = np.arange(N)
+    fig = plt.figure()
+    plt.plot(plotx, jointn_norm,label='length')
+    plt.plot(plotx, angles[:,0],label='angle x')
+    plt.plot(plotx, angles[:,1],label='angle y')
+    plt.plot(plotx, angles[:,2],label='angle z')
+    
+    plt.plot(plotx, smoothed_angles[:,0],label='smoothed angle x')
+    plt.plot(plotx, smoothed_angles[:,1],label='smoothed angle y')
+    plt.plot(plotx, smoothed_angles[:,2],label='smoothed angle z')
+    plt.title(pair_name)
 
-    #plt.legend()
-    #plt.savefig('figure/%s.jpg'%pair_name)
+    plt.legend()
+    plt.savefig('figure/%s.jpg'%pair_name)
     #plt.show()
      
 

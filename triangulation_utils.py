@@ -173,7 +173,7 @@ def visualize_3D_joint_traj(data, config):
         
         if smoothing:
             #estimated_3d = smooth_3d_joints( estimated_3d, max_sliding_window_length, use_high_conf_filter, union_mask)
-            estimated_3d = my_smooth_3d_joints( estimated_3d, max_sliding_window_length, use_high_conf_filter, union_mask)
+            estimated_3d = my_smooth_3d_joints( estimated_3d, max_sliding_window_length, use_high_conf_filter, union_mask, it)
 
         kp_traj = [] 
         pts_3d = estimated_3d.reshape(-1, 3)
@@ -189,7 +189,6 @@ def visualize_3D_joint_traj(data, config):
             norm_diff = np.linalg.norm(diff, axis=1)
             norm_diff_list.append(norm_diff)
         reprojection_error = np.mean(norm_diff_list)
-        print("reprojection error: %f  %f"%(norm_diff_list[0],norm_diff_list[1]))
     
     estimated_trajectory = np.stack([estimated_3d[i].mean(axis=0) for i in range(0, len(estimated_3d))])
     estimated_trajectory[:,2] = 0
