@@ -61,6 +61,4 @@ To train prediction model: `python train_model.py -y "./config/train_config.yaml
  
 ---------------------------------------
 ## TODO:
-use_high_conf_filter in `./triangulation_utils.py/visualize_3D_joint_traj` <br />
-smooth z-only in `./triangulation_utils.py/visualize_3D_joint_traj` <br />
 Modulize Visualize 2d joints in `./triangulation_utils.py/visualize_3D_joint_traj` <br />
