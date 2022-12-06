@@ -55,8 +55,9 @@ To train prediction model: `python train_model.py -y "./config/train_config.yaml
 
 ## <a name="ref">References
 1. <a name="TBD_dataset">[**Towards Rich, Portable, and Large-Scale Pedestrian Data Collection**](https://arxiv.org/abs/2203.01974) Wang, A., Biswas, A., Admoni, H., & Steinfeld, A. (2022) [Project website](https://tbd.ri.cmu.edu/resources/tbd-social-navigation-datasets/)
-2. [**ByteTrack: Multi-Object Tracking by Associating Every Detection Box**](https://arxiv.org/abs/2110.06864) , Yifu Z. et al. ECCV 2022. [Github](https://github.com/ifzhang/ByteTrack)
-3. <a name="allen_proj"></a>[**Pedestrian Trajectory Prediction with Graph Neural Networks**](http://www.cs.cmu.edu/~epxing/Class/10708-19/assets/project/final-reports/project19.pdf), Allan Wang, Zirui Wang , and Wentao Yuan.
+2. [**ViTPose: Simple Vision Transformer Baselines for Human Pose Estimation**](https://arxiv.org/abs/2204.12484) , Yufei X. et al. NIPS 2022. [Github](https://github.com/ViTAE-Transformer/ViTPose)
+3. [**ByteTrack: Multi-Object Tracking by Associating Every Detection Box**](https://arxiv.org/abs/2110.06864) , Yifu Z. et al. ECCV 2022. [Github](https://github.com/ifzhang/ByteTrack)
+4. <a name="allen_proj"></a>[**Pedestrian Trajectory Prediction with Graph Neural Networks**](http://www.cs.cmu.edu/~epxing/Class/10708-19/assets/project/final-reports/project19.pdf), Allan Wang, Zirui Wang , and Wentao Yuan.
 
  
 ---------------------------------------
