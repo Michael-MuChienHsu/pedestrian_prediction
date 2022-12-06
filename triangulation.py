@@ -19,7 +19,6 @@ if __name__ == "__main__":
     P_list, trajectory = setup_multicamera(config) # trajectory tracklet ground truth trajectory.
     num_tracklet = len(trajectory)
 
-
     # Visualize 3d joints over time.
     if config.visualize["visualize"]:
         if config.tracker_id == -1:

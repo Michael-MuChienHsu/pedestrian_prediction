@@ -1,0 +1,5 @@
+.DS_Store
+*.swp
+__pycache__/
+joint_3d_visualize*/
+joints_3d_0.png

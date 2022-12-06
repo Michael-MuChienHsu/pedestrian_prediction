@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
+from smooth import my_smooth_3d_joints
+
 _RGB_BODY = ( 1, 165/255,0 ) # orange
 _RGB_HEAD = (1, 0, 0) # red
 _RGB_LEFT = ( 0, 100/255, 0 ) # dark green
@@ -148,7 +150,9 @@ def visualize_3D_joint_traj(data, config):
     # estimated_3d = [estimated_3d[i] for i in range(0, len(estimated_3d), sample_rate)]
     estimated_3d = [estimated_3d[i] for i in range(0, len(estimated_3d), sample_rate)][:max_frame]
     trajectory = [ trajectory[i] for i in range(0, len(trajectory), sample_rate) ]
-
+    
+    estimated_trajectory = np.stack([estimated_3d[i].mean(axis=0) for i in range(0, len(estimated_3d))])
+    estimated_trajectory[:,2] = 0
     # TODO Modulize this part
     # Visualize 2d joints in coresponding 2d view.
     # kp_traj[0] = kp_traj[0].reshape(-1, 17, 2)
@@ -162,17 +166,18 @@ def visualize_3D_joint_traj(data, config):
     #     if i+1 == max_frame: break
 
     smoothing_offset = 0
-
-
+    
     # union_mask: Takes only joints that are detected in all views with high confidence into account
     union_mask = np.sum(hign_conf_mask, axis=0) >= hign_conf_mask.shape[0] # N*17
     matching_table = np.where(union_mask) # N*17
     if smoothing:
-        estimated_3d = smooth_3d_joints( estimated_3d, max_sliding_window_length, use_high_conf_filter, union_mask)
+        #estimated_3d = smooth_3d_joints( estimated_3d, max_sliding_window_length, use_high_conf_filter, union_mask)
+        estimated_3d = my_smooth_3d_joints( estimated_3d, max_sliding_window_length, use_high_conf_filter, union_mask)
 
     for i, (joints_3d, _mask) in enumerate( zip(estimated_3d, union_mask.reshape(-1, 17))):
         # color = color_map(i/float(len(smoothed_3d_joints)))
         color = (0, 0, 1)
+        est_color = (1,0,0)
 
         joints_3d = joints_3d.T
         if False:
@@ -202,9 +207,10 @@ def visualize_3D_joint_traj(data, config):
 
         # plot traj at time i 
         ax.scatter( *(trajectory[i]), color = color )
-
+        ax.scatter( *(estimated_trajectory[i]), color=est_color)
         # plot skeleton
-        start_3d, end_3d = get_skeleton_start_end_point(joints_3d, use_high_conf_filter, _mask)
+        #start_3d, end_3d = get_skeleton_start_end_point(joints_3d, use_high_conf_filter, _mask)
+        start_3d, end_3d = get_skeleton_start_end_point(joints_3d,False, _mask)
         for _s, _e, _c in zip( start_3d, end_3d, _SKELETON_COLOR ):
             ax.plot([_s[0], _e[0]], [_s[1], _e[1]], [_s[2], _e[2] ], color = _c )
 
@@ -278,6 +284,17 @@ def smooth_3d_joints( estimated_3d, max_sliding_window_length, use_high_conf_fil
     Returns:  
         smoothed_3d_joints: 3d joints after smoothing. Nx17x3
     """
+    
+    head_idx = np.array([0,1,2,3,4])
+    shoulder_idx = np.array([5,6])
+    elbow_idx = np.array([7,8])
+    hand_idx = np.array([9,10])
+    hip_idx = np.array([11,12])
+    knee_idx = np.array([13,14])
+    feet_idx = np.array([15,16])
+
+    idx = np.concatenate([head_idx,shoulder_idx,hip_idx])
+
     smoothed_3d_joints = np.empty( (0, 17, 3) )
     estimated_3d = np.array(estimated_3d)
     input_shape = np.array(estimated_3d).shape
@@ -291,6 +308,8 @@ def smooth_3d_joints( estimated_3d, max_sliding_window_length, use_high_conf_fil
 
     else:
         gravity_vector = np.mean(estimated_3d, axis=1) # Nx3
+        # only use head + torso key points to calculate gravity
+        #gravity_vector = estimated_3d[:,idx,:].mean(axis=1)
 
     for i, (joints_3d, current_gravity) in enumerate(zip(estimated_3d, gravity_vector)):
         sliding_window_length = min( i - max(0, i-max_sliding_window_length), min(i+max_sliding_window_length, len(estimated_3d) ) - i  )
