@@ -46,7 +46,8 @@ triangulation.py
 ## <a name="use_bytetrack"></a>2D joint estimation with Byte Track.
 
 ## <a name="triangulation"></a>Triangulation using multiview 2D joints.
-To git 3d joints with triangulation: `python triangulation.py -y "./config/triangulation.yaml"`
+To get 3d joints with triangulation: `python triangulation.py -y "./config/triangulation.yaml"`
+Acknowlegement: Thanks wenwuX for helping anti-jittering in 3D joint smoothing.
 
 ## <a name="network"></a>Baseline 3D Trajectrory prediction model.
 Thanks for Allen providing his [previous work](http://www.cs.cmu.edu/~epxing/Class/10708-19/assets/project/final-reports/project19.pdf) as our baseline model. Our baseline model is built on top of his work. <br />
