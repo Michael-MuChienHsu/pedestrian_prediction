@@ -1,7 +1,8 @@
 # Modeling and Understanding Pedestrian Behavior
 In this project we proposed a new method to predict pedestrain's trajectory in 3D space with multuple 2D views. Our methoed combines deep learning based method to tackle the difficult joint detection tasks and trajextory prediction task, and geometry methods to estimate joint poses from different views. <br />
-This project focuses on complex predestrain walking scenes recorded with bird-eye-view cameras.
+This project focuses on complex predestrain walking scenes recorded with bird-eye-view cameras. <br />
 
+<br />Thanks [wenwuX](https://github.com/Michael-MuChienHsu/pedestrian_prediction/tree/wenyu) for helping anti-jittering in 3D joint smoothing.
 ## Contents
 1. [Data setup](#data_setup).<br />
 2. [Data2D joint estimation with Byte Track](#use_bytetrack).<br />
@@ -47,7 +48,6 @@ triangulation.py
 
 ## <a name="triangulation"></a>Triangulation using multiview 2D joints.
 To get 3d joints with triangulation: `python triangulation.py -y "./config/triangulation.yaml"` <br />
-Thanks [wenwuX](https://github.com/wenyuX) for helping anti-jittering in 3D joint smoothing.
 
 ## <a name="network"></a>Baseline 3D Trajectrory prediction model.
 Thanks for Allen providing his [previous work](http://www.cs.cmu.edu/~epxing/Class/10708-19/assets/project/final-reports/project19.pdf) as our baseline model. Our baseline model is built on top of his work. <br />
